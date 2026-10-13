@@ -242,6 +242,8 @@ jobs:
           RELEASE_TITLE: ${{ needs.generate.outputs.release_title }}
           SOURCE_SHA: ${{ needs.generate.outputs.source_sha }}
         run: |
+          set -euo pipefail
+
           release_title="$RELEASE_TITLE"
           pages_link="<a href=\"$PAGES_BASE\" target=\"_blank\" rel=\"noopener noreferrer\">打开 GitHub Pages 结果页面 / Open GitHub Pages results page</a>"
           printf -v release_notes '%s\n\n%s\n\n%s' \
@@ -255,17 +257,67 @@ jobs:
               "$pages_link"
           fi
 
-          mapfile -d '' local_assets < <(find release-assets -maxdepth 1 -type f -print0 | sort -z)
-          gh release create "$RELEASE_TAG" "${local_assets[@]}" \
+          # 确保文件已完全写入磁盘
+          sync
+
+          # 收集 asset，过滤掉空文件和特殊文件（避免 Content-Length 异常）
+          mapfile -d '' local_assets < <(
+            find release-assets -maxdepth 1 -type f -size +0c -print0 | sort -z
+          )
+
+          if [[ ${#local_assets[@]} -eq 0 ]]; then
+            echo "::error::No release assets found in release-assets/"
+            ls -la release-assets || true
+            exit 1
+          fi
+
+          # 打印将要上传的文件，便于排查
+          echo "Assets to upload:"
+          for f in "${local_assets[@]}"; do
+            printf '  %s (%s bytes)\n' "$f" "$(stat -c%s "$f")"
+          done
+
+          # 1) 先创建 Release（不带 asset，避免批量上传 bug）
+          gh release create "$RELEASE_TAG" \
             --repo "$GITHUB_REPOSITORY" \
             --target "$SOURCE_SHA" \
             --title "$release_title" \
             --notes "$release_notes" \
             --prerelease
 
-          find release-assets -maxdepth 1 -type f -printf '%f\n' | sort > /tmp/local-assets.txt
+          # 2) 逐个上传 asset，带重试
+          for asset in "${local_assets[@]}"; do
+            name="$(basename "$asset")"
+            success=0
+            for attempt in 1 2 3 4 5; do
+              echo "::group::Uploading $name (attempt $attempt)"
+              if gh release upload "$RELEASE_TAG" "$asset" \
+                   --repo "$GITHUB_REPOSITORY" \
+                   --clobber; then
+                success=1
+                echo "::endgroup::"
+                break
+              fi
+              echo "::endgroup::"
+              echo "::warning::Upload failed for $name (attempt $attempt), retrying..."
+              sleep $((attempt * 5))
+            done
+            if [[ "$success" -ne 1 ]]; then
+              echo "::error::Failed to upload $name after 5 attempts"
+              exit 1
+            fi
+          done
+
+          # 3) 校验本地与远端 asset 列表一致
+          find release-assets -maxdepth 1 -type f -size +0c -printf '%f\n' | sort > /tmp/local-assets.txt
           gh release view "$RELEASE_TAG" \
             --repo "$GITHUB_REPOSITORY" \
             --json assets \
             --jq '.assets[].name' | sort > /tmp/remote-assets.txt
+
+          echo "Local assets:"
+          cat /tmp/local-assets.txt
+          echo "Remote assets:"
+          cat /tmp/remote-assets.txt
+
           diff -u /tmp/local-assets.txt /tmp/remote-assets.txt
