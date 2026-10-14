@@ -4,17 +4,19 @@
 # Supports setting UA: https://xxx.com/subscribe.m3u UA="xxx"
 
 
-https://raw.githubusercontent.com/iptv-org/iptv/gh-pages/countries/cn.m3u
-https://raw.githubusercontent.com/iptv-org/iptv/master/streams/cn.m3u
-https://raw.githubusercontent.com/suxuang/myIPTV/main/ipv4.m3u
-https://raw.githubusercontent.com/kimwang1978/collect-tv-txt/main/others_output.txt
-https://raw.githubusercontent.com/vbskycn/iptv/master/tv/iptv4.txt
-https://raw.githubusercontent.com/vbskycn/iptv/master/tv/iptv4.txt
-https://gitlab.com/hewittchoi/tvlist/-/raw/main/updated.txt
-https://raw.githubusercontent.com/hsh58/ds/refs/heads/master/ds.txt
-https://raw.githubusercontent.com/Kimentanm/aptv/refs/heads/master/m3u/iptv.m3u
-https://raw.githubusercontent.com/suxuang/myIPTV/refs/heads/main/ipv4.m3u
+#https://raw.githubusercontent.com/iptv-org/iptv/gh-pages/countries/cn.m3u
+#https://raw.githubusercontent.com/iptv-org/iptv/master/streams/cn.m3u
+#https://raw.githubusercontent.com/suxuang/myIPTV/main/ipv4.m3u
+#https://raw.githubusercontent.com/kimwang1978/collect-tv-txt/main/others_output.txt
+#https://raw.githubusercontent.com/vbskycn/iptv/master/tv/iptv4.txt
+#https://raw.githubusercontent.com/vbskycn/iptv/master/tv/iptv4.txt
+#https://gitlab.com/hewittchoi/tvlist/-/raw/main/updated.txt
+#https://raw.githubusercontent.com/hsh58/ds/refs/heads/master/ds.txt
+#https://raw.githubusercontent.com/Kimentanm/aptv/refs/heads/master/m3u/iptv.m3u
+#https://raw.githubusercontent.com/suxuang/myIPTV/refs/heads/main/ipv4.m3u
 
+https://raw.githubusercontent.com/lisa3456/lisa3456.github.io/refs/heads/master/IPTV.txt
+https://raw.githubusercontent.com/lisa3456/lisa3456.github.io/refs/heads/master/hotel.txt
 
 
 [WHITELIST]
